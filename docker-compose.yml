@@ -12,11 +12,9 @@ services:
       - TZ="Europe/Moscow"
     volumes:
       - ddg-mysql-vl:/var/lib/mysql
-      - ./configs/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     command: '--default-authentication-plugin=mysql_native_password'
     networks:
-      ddg-net:
-        ipv4_address: 172.156.54.100
+      - ddg-net
 
 # MONITORING
   ddg-prometheus:
@@ -69,27 +67,26 @@ services:
     image: prom/mysqld-exporter:v0.14.0
     container_name: ddg-mysqld-exporter
     command:
-      - --collect.info_schema.processlist
-      - --collect.info_schema.innodb_metrics
-      - --collect.info_schema.tablestats
-      - --collect.info_schema.tables
-      - --collect.info_schema.userstats
-      - --collect.engine_innodb_status
-#     new
-      - --collect.global_status
-      - --collect.auto_increment.columns
-      - --collect.binlog_size
-      - --collect.global_variables
-      - --collect.info_schema.query_response_time
-      - --collect.perf_schema.tablelocks
-      - --collect.perf_schema.file_events
-      - --collect.perf_schema.eventswaits
-      - --collect.perf_schema.indexiowaits
-      - --collect.perf_schema.tableiowaits
-      - --collect.slave_status
-      - --web.listen-address=0.0.0.0:9104
+      - '--collect.info_schema.processlist'
+      - '--collect.info_schema.innodb_metrics'
+      - '--collect.info_schema.tablestats'
+      - '--collect.info_schema.tables'
+      - '--collect.info_schema.userstats'
+      - '--collect.engine_innodb_status'
+      - '--collect.global_status'
+      - '--collect.auto_increment.columns'
+      - '--collect.binlog_size'
+      - '--collect.global_variables'
+      - '--collect.info_schema.query_response_time'
+      - '--collect.perf_schema.tablelocks'
+      - '--collect.perf_schema.file_events'
+      - '--collect.perf_schema.eventswaits'
+      - '--collect.perf_schema.indexiowaits'
+      - '--collect.perf_schema.tableiowaits'
+      - '--collect.slave_status'
+      - '--web.listen-address=0.0.0.0:9104'
     environment:
-      - DATA_SOURCE_NAME=root:$MYSQL_ROOT_PASSWORD@(172.156.54.100:3306)/mysql
+      - DATA_SOURCE_NAME=root:$MYSQL_ROOT_PASSWORD@(ddg-mysql-dbms:3306)/
     networks:
       - ddg-net
     ports:
