@@ -1,0 +1,33 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'codelab-monitor'
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets:
+        - localhost:9090
+  - job_name: mysql
+    params:
+      auth_module: [client.servers]
+    static_configs:
+      - targets:
+        - ddg-mysql:3306
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 'ddg-mysqld-exporter:9104'
+      - target_label: region
+        replacement: local
+
+remote_write:
+  - url: "<Your Prometheus remote_write endpoint>"
+    basic_auth:
+      username: "<Your Grafana Username>"
+      password: "<Your Grafana API key>"
+

@@ -1,0 +1,114 @@
+version: '3.9'
+
+services:
+
+# APPLICATION
+  ddg-mysql:
+    image: mysql:5.7
+    container_name: ddg-mysql
+    restart: unless-stopped
+    environment:
+      - TZ="Europe/Moscow"
+    volumes:
+      - ddg-mysql-vl:/var/lib/mysql
+      - ./configs/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: '--default-authentication-plugin=mysql_native_password'
+    networks:
+      - ddg-net
+
+# MONITORING
+  ddg-prometheus:
+    depends_on:
+      - ddg-mysql
+    image: prom/prometheus:v2.42.0
+    container_name: ddg-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    environment:
+      TZ: "Europe/Moscow"
+    volumes:
+      - ./configs/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - ddg-prometheus-vl:/prometheus
+    networks:
+      - ddg-net
+    ports:
+      - 9090:9090
+
+  ddg-node-exporter:
+    depends_on:
+      - ddg-prometheus
+    image: prom/node-exporter:v1.5.0
+    container_name: ddg-node-exporter
+    restart: unless-stopped
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    environment:
+      TZ: "Europe/Moscow"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - ddg-net
+    expose:
+      - 9100
+
+  ddg-mysqld-exporter:
+    depends_on:
+      - ddg-prometheus
+    image: prom/mysqld-exporter:v0.14.0
+    container_name: ddg-mysqld-exporter
+    environment:
+      - MYSQLD_EXPORTER_PASSWORD=$MYSQL_EXP_PASS
+    networks:
+      - ddg-net
+    expose:
+      - 9104
+
+  ddg-grafana:
+    depends_on:
+      - ddg-prometheus
+    image: grafana/grafana:9.3.6
+    container_name: ddg-grafana
+    restart: unless-stopped
+    environment:
+      TZ: "Europe/Moscow"
+    volumes:
+      - ddg-grafana-vl:/var/lib/grafana
+    networks:
+      - ddg-net
+    ports:
+      - 3000:3000
+
+  ddg-nginx:
+    image: nginx:1.23.1-alpine
+    container_name: ddg-nginx
+    restart: unless-stopped
+    volumes:
+      - ./configs/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro
+    networks:
+      - ddg-net
+    ports:
+      - "80:80"
+
+volumes:
+  ddg-mysql-vl:
+  ddg-prometheus-vl:
+  ddg-grafana-vl:
+
+networks:
+  ddg-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.156.54.0/24
+          ip_range: 172.156.54.16/28
+          gateway: 172.156.54.1
