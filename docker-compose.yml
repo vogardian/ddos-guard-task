@@ -58,8 +58,8 @@ services:
       - /:/rootfs:ro
     networks:
       - ddg-net
-    ports:
-      - '9100:9100'
+    expose:
+      - 9100
 
   ddg-mysqld-exporter:
     depends_on:
@@ -89,8 +89,8 @@ services:
       - DATA_SOURCE_NAME=root:$MYSQL_ROOT_PASSWORD@(ddg-mysql-dbms:3306)/
     networks:
       - ddg-net
-    ports:
-      - '9104:9104'
+    expose:
+      - 9104
 
   ddg-grafana:
     depends_on:
@@ -104,8 +104,8 @@ services:
       - ddg-grafana-vl:/var/lib/grafana
     networks:
       - ddg-net
-    ports:
-      - 3000:3000
+    expose:
+      - 3000
 
   ddg-nginx:
     image: nginx:1.23.1-alpine
