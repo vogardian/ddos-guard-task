@@ -3,10 +3,11 @@ version: '3.9'
 services:
 
 # APPLICATION
-  ddg-mysql:
+  ddg-mysql-dbms:
     image: mysql:5.7
-    container_name: ddg-mysql
+    container_name: ddg-mysql-dbms
     restart: unless-stopped
+    env_file: .env
     environment:
       - TZ="Europe/Moscow"
     volumes:
@@ -14,12 +15,13 @@ services:
       - ./configs/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     command: '--default-authentication-plugin=mysql_native_password'
     networks:
-      - ddg-net
+      ddg-net:
+        ipv4_address: 172.156.54.100
 
 # MONITORING
   ddg-prometheus:
     depends_on:
-      - ddg-mysql
+      - ddg-mysql-dbms
     image: prom/prometheus:v2.42.0
     container_name: ddg-prometheus
     restart: unless-stopped
@@ -58,20 +60,40 @@ services:
       - /:/rootfs:ro
     networks:
       - ddg-net
-    expose:
-      - 9100
+    ports:
+      - '9100:9100'
 
   ddg-mysqld-exporter:
     depends_on:
       - ddg-prometheus
     image: prom/mysqld-exporter:v0.14.0
     container_name: ddg-mysqld-exporter
+    command:
+      - --collect.info_schema.processlist
+      - --collect.info_schema.innodb_metrics
+      - --collect.info_schema.tablestats
+      - --collect.info_schema.tables
+      - --collect.info_schema.userstats
+      - --collect.engine_innodb_status
+#     new
+      - --collect.global_status
+      - --collect.auto_increment.columns
+      - --collect.binlog_size
+      - --collect.global_variables
+      - --collect.info_schema.query_response_time
+      - --collect.perf_schema.tablelocks
+      - --collect.perf_schema.file_events
+      - --collect.perf_schema.eventswaits
+      - --collect.perf_schema.indexiowaits
+      - --collect.perf_schema.tableiowaits
+      - --collect.slave_status
+      - --web.listen-address=0.0.0.0:9104
     environment:
-      - MYSQLD_EXPORTER_PASSWORD=$MYSQL_EXP_PASS
+      - DATA_SOURCE_NAME=root:$MYSQL_ROOT_PASSWORD@(172.156.54.100:3306)/mysql
     networks:
       - ddg-net
-    expose:
-      - 9104
+    ports:
+      - '9104:9104'
 
   ddg-grafana:
     depends_on:
@@ -112,3 +134,4 @@ networks:
         - subnet: 172.156.54.0/24
           ip_range: 172.156.54.16/28
           gateway: 172.156.54.1
+

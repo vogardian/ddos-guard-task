@@ -9,21 +9,23 @@ scrape_configs:
     static_configs:
       - targets:
         - localhost:9090
-  - job_name: mysql
-    params:
-      auth_module: [client.servers]
+
+  - job_name: node-exporter
     static_configs:
       - targets:
-        - ddg-mysql:3306
+        - ddg-node-exporter:9100
+
+  - job_name: mysqld-exporter
+    static_configs:
+      - targets:
+        - ddg-mysql-dbms:3306
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: 'ddg-mysqld-exporter:9104'
-      - target_label: region
-        replacement: local
+        replacement: ddg-mysqld-exporter:9104
 
 remote_write:
   - url: "<Your Prometheus remote_write endpoint>"
