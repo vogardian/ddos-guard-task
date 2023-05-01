@@ -20,7 +20,7 @@ services:
   ddg-prometheus:
     depends_on:
       - ddg-mysql-dbms
-    image: prom/prometheus:v2.42.0
+    image: prom/prometheus:v2.43.0
     container_name: ddg-prometheus
     restart: unless-stopped
     command:
@@ -37,7 +37,7 @@ services:
     networks:
       - ddg-net
     ports:
-      - 9090:9090
+      - '9090:9090'
 
   ddg-node-exporter:
     depends_on:
@@ -95,7 +95,7 @@ services:
   ddg-grafana:
     depends_on:
       - ddg-prometheus
-    image: grafana/grafana:9.3.6
+    image: grafana/grafana:9.5.1
     container_name: ddg-grafana
     restart: unless-stopped
     environment:
@@ -108,7 +108,7 @@ services:
       - 3000
 
   ddg-nginx:
-    image: nginx:1.23.1-alpine
+    image: nginx:1.24.0
     container_name: ddg-nginx
     restart: unless-stopped
     volumes:
