@@ -85,8 +85,6 @@ services:
       - '--collect.perf_schema.tableiowaits'
       - '--collect.slave_status'
       - '--web.listen-address=0.0.0.0:9104'
-      - '--collect.engine_innodb_status'
-      - '--collect.info_schema.innodb_metrics'
       - '--collect.info_schema.innodb_tablespaces'
       - '--collect.info_schema.innodb_cmp'
       - '--collect.info_schema.innodb_cmpmem'
