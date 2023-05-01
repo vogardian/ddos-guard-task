@@ -36,6 +36,8 @@ services:
       - ddg-prometheus-vl:/prometheus
     networks:
       - ddg-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - '9090:9090'
 
@@ -56,8 +58,7 @@ services:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /:/rootfs:ro
-    networks:
-      - ddg-net
+    network_mode: host
     expose:
       - 9100
 

@@ -11,9 +11,11 @@ scrape_configs:
         - localhost:9090
 
   - job_name: node-exporter
+    tls_config:
+      insecure_skip_verify: true
     static_configs:
       - targets:
-        - ddg-node-exporter:9100
+        - <YOUR VM IP ADDRESS>:9100
 
   - job_name: mysqld-exporter
     static_configs:
