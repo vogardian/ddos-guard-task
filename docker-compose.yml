@@ -67,6 +67,7 @@ services:
       - ddg-prometheus
     image: prom/mysqld-exporter:v0.14.0
     container_name: ddg-mysqld-exporter
+    restart: unless-stopped
     command:
       - '--collect.info_schema.processlist'
       - '--collect.info_schema.innodb_metrics'
